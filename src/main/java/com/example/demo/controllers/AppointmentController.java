@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -45,56 +46,13 @@ public class AppointmentController {
 
     @PostMapping("/appointment")
     public ResponseEntity<List<Appointment>> createAppointment(@RequestBody Appointment appointment) {
-        // checking if other classes that Appointment depends on are null
-        if (Objects.isNull(appointment.getPatient()))
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        if (Objects.isNull(appointment.getDoctor()))
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        if (Objects.isNull(appointment.getRoom()))
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-        // checking if dates are null
-        if (Objects.isNull(appointment.getStartsAt()) || Objects.isNull(appointment.getFinishesAt()))
+        if (areRequiredFieldsNull(appointment))
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-        // checks if there is a null attribute for Patient
-        if (appointment.getPatient().getFirstName().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (appointment.getPatient().getLastName().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (appointment.getPatient().getEmail().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (appointment.getPatient().getAge() < 0)
+        if (areConflictBetweenDates(appointment.getStartsAt(), appointment.getFinishesAt()))
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-        // checks if there is a null attribute for Doctor
-        if (appointment.getDoctor().getFirstName().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (appointment.getDoctor().getLastName().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (appointment.getDoctor().getEmail().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        if (appointment.getDoctor().getAge() < 18)
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        // checks if there is a null attribute for Room
-        if (appointment.getRoom().getRoomName().trim().isEmpty())
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        // checks if both dates, start and finish are the same
-        if (appointment.getStartsAt().isEqual(appointment.getFinishesAt()))
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        // checks if the end date is before start date
-        if (appointment.getFinishesAt().isBefore(appointment.getStartsAt()))
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-        // checking conflicts between appointments
-        List<Appointment> appointmentsFromDb = appointmentRepository.findAll();
-        Optional<Appointment> appointmentOptional = appointmentsFromDb.stream()
-                .filter(appointmentDb -> appointmentDb.overlaps(appointment))
-                .findFirst();
-        if (appointmentOptional.isPresent())
+        if (isAppointmentsOverlap(appointmentRepository.findAll(), appointment))
             return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
 
         appointmentRepository.save(appointment);
@@ -124,4 +82,43 @@ public class AppointmentController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    private boolean areRequiredFieldsNull(Appointment appointment) {
+        if (Objects.isNull(appointment.getPatient()) ||
+                Objects.isNull(appointment.getDoctor()) ||
+                Objects.isNull(appointment.getRoom())) {
+            return true;
+        }
+
+        if (appointment.getPatient().getFirstName().trim().isEmpty() ||
+                appointment.getPatient().getLastName().trim().isEmpty() ||
+                appointment.getPatient().getEmail().trim().isEmpty() ||
+                appointment.getPatient().getAge() < 0) {
+            return true;
+        }
+
+        if (appointment.getDoctor().getFirstName().trim().isEmpty() ||
+                appointment.getDoctor().getLastName().trim().isEmpty() ||
+                appointment.getDoctor().getEmail().trim().isEmpty() ||
+                appointment.getDoctor().getAge() < 18) {
+            return true;
+        }
+
+        if (appointment.getRoom().getRoomName().trim().isEmpty()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean areConflictBetweenDates(LocalDateTime date1, LocalDateTime date2) {
+        // checks if both dates are the same or date2 is before date1
+        return date1.isEqual(date2) || date2.isBefore(date1);
+    }
+
+    private boolean isAppointmentsOverlap(List<Appointment> appointments, Appointment appointment) {
+        Optional<Appointment> appointmentOptional = appointments.stream()
+                .filter(appointmentDb -> appointmentDb.overlaps(appointment))
+                .findFirst();
+        return appointmentOptional.isPresent();
+    }
 }
