@@ -4,7 +4,6 @@ import com.example.demo.entities.Appointment;
 import com.example.demo.entities.Doctor;
 import com.example.demo.entities.Patient;
 import com.example.demo.entities.Room;
-import org.junit.Before;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
