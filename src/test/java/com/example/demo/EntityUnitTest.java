@@ -41,7 +41,7 @@ class EntityUnitTest {
     private Appointment appointmentTwo;
     private Appointment appointmentTree;
 
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
     @AfterEach
     void tearDown() {
