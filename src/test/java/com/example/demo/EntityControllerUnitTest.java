@@ -3,6 +3,7 @@ package com.example.demo;
 import com.example.demo.controllers.DoctorController;
 import com.example.demo.controllers.PatientController;
 import com.example.demo.controllers.RoomController;
+import com.example.demo.entities.Patient;
 import com.example.demo.entities.Room;
 import com.example.demo.repositories.DoctorRepository;
 import com.example.demo.repositories.PatientRepository;
@@ -64,11 +65,132 @@ class PatientControllerUnitTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void this_is_a_test() {
-        // DELETE ME
-        assertThat(true).isEqualTo(false);
+    void shouldCreatePatient() throws Exception {
+        // given
+        String POST_PATIENT_URI = "/api/patient";
+        Patient patient = new Patient("Héctor", "Cortez", 31, "h.cortez@email.com");
+
+        // when
+        mockMvc.perform(post(POST_PATIENT_URI).contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(patient)))
+                // then
+                .andExpect(status().isCreated());
     }
 
+    @Test
+    void shouldGetPatientById() throws Exception {
+        // given
+        String GET_PATIENT_BY_ID_URI = "/api/patients/";
+        long PATIENT_ID = 2L;
+        Patient patient = new Patient("Héctor", "Cortez", 31, "h.cortez@email.com");
+
+        patient.setId(PATIENT_ID);
+        Optional<Patient> optionalPatient = Optional.of(patient);
+
+        // when
+        when(patientRepository.findById(PATIENT_ID)).thenReturn(optionalPatient);
+
+        // then
+        assertThat(optionalPatient).isPresent();
+        assertThat(optionalPatient.get().getId()).isEqualTo(patient.getId());
+        assertThat(optionalPatient.get().getId()).isEqualTo(PATIENT_ID);
+
+        mockMvc.perform(get(GET_PATIENT_BY_ID_URI + PATIENT_ID))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldNotGetAnyPatient() throws Exception {
+        // given
+        String GET_PATIENT_BY_ID_URI = "/api/patients/";
+        long PATIENT_ID = 2L;
+
+        // when
+        mockMvc.perform(get(GET_PATIENT_BY_ID_URI + PATIENT_ID))
+                // then
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldGetAllPatients() throws Exception {
+        // given
+        String GET_ALL_PATIENTS_URI = "/api/patients";
+        Patient patient1 = new Patient("Héctor", "Cortez", 31, "h.cortez@email.com");
+        Patient patient2 = new Patient("Francisco", "Orieta", 18, "f.orieta@email.com");
+
+        patient1.setId(1L);
+        patient2.setId(2L);
+
+        List<Patient> patients = new ArrayList<>();
+        patients.add(patient1);
+        patients.add(patient2);
+
+        // when
+        when(patientRepository.findAll()).thenReturn(patients);
+
+        // then
+        mockMvc.perform(get(GET_ALL_PATIENTS_URI))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldNotGetPatients() throws Exception {
+        // given
+        String GET_ALL_PATIENTS_URI = "/api/patients";
+        List<Patient> EMPTY_PATIENT_LIST = new ArrayList<>();
+
+        // when
+        when(patientRepository.findAll()).thenReturn(EMPTY_PATIENT_LIST);
+
+        // then
+        mockMvc.perform(get(GET_ALL_PATIENTS_URI))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldDeletePatientById() throws Exception {
+        // given
+        String DELETE_PATIENT_BY_NAME_URI = "/api/patients/";
+        long PATIENT_ID = 3L;
+        Patient patient = new Patient("Héctor", "Cortez", 31, "h.cortez@email.com");
+        patient.setId(PATIENT_ID);
+
+        Optional<Patient> optionalPatient = Optional.of(patient);
+
+        // when
+        when(patientRepository.findById(PATIENT_ID)).thenReturn(optionalPatient);
+
+        // then
+        mockMvc.perform(delete(DELETE_PATIENT_BY_NAME_URI + PATIENT_ID))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldNotDeleteAnyPatient() throws Exception {
+        // given
+        String DELETE_PATIENT_BY_NAME_URI = "/api/patients/";
+        long PATIENT_ID = 8L;
+
+        Optional<Patient> optionalPatient = Optional.empty();
+
+        // when
+        when(patientRepository.findById(PATIENT_ID)).thenReturn(optionalPatient);
+
+        // then
+        mockMvc.perform(delete(DELETE_PATIENT_BY_NAME_URI + PATIENT_ID))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldDeleteAllPatients() throws Exception {
+        // given
+        String DELETE_ALL_PATIENTS_URI = "/api/patients";
+
+        // when
+        // then
+        mockMvc.perform(delete(DELETE_ALL_PATIENTS_URI))
+                .andExpect(status().isOk());
+    }
 }
 
 @WebMvcTest(RoomController.class)
@@ -129,7 +251,7 @@ class RoomControllerUnitTest {
     }
 
     @Test
-    void shouldGetTwoRooms() throws Exception {
+    void shouldGetAllRooms() throws Exception {
         // given
         String GET_ALL_ROOMS_URI = "/api/rooms";
         Room room1 = new Room("Dermatology");
@@ -197,11 +319,11 @@ class RoomControllerUnitTest {
     @Test
     void shouldDeleteAllRooms() throws Exception {
         // given
-        String DELETE_ROOM_URI = "/api/rooms";
+        String DELETE_ALL_ROOMS_URI = "/api/rooms";
 
         // when
         // then
-        mockMvc.perform(delete(DELETE_ROOM_URI))
+        mockMvc.perform(delete(DELETE_ALL_ROOMS_URI))
                 .andExpect(status().isOk());
     }
 }
