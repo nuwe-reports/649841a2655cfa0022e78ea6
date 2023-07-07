@@ -30,13 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-/**
- * TODO
- * Implement all the unit test in its corresponding class.
- * Make sure to be as exhaustive as possible. Coverage is checked ;)
- */
-
 @WebMvcTest(DoctorController.class)
 class DoctorControllerUnitTest {
 
