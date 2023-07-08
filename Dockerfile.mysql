@@ -1,0 +1,9 @@
+FROM mysql:latest
+ENV MYSQL_DATABASE=accwe-hospital
+ENV MYSQL_ROOT_PASSWORD=root
+ENV MYSQL_USER=root
+ENV MYSQL_PASSWORD=root
+RUN echo "character_set_server=utf8mb4" >> /etc/mysql/conf.d/docker.cnf
+RUN echo "collation_server=utf8mb4_unicode_ci" >> /etc/mysql/conf.d/docker.cnf
+EXPOSE 3306
+CMD ["mysqld"]
