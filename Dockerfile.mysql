@@ -1,8 +1,10 @@
 FROM mysql:latest
-ENV MYSQL_DATABASE=accwe-hospital
+
 ENV MYSQL_ROOT_PASSWORD=root
-ENV MYSQL_USER=root
-ENV MYSQL_PASSWORD=root
-EXPOSE 3306
+ENV MYSQL_DATABASE=accwe-hospital
+
 VOLUME /var/lib/mysql
+
+EXPOSE 3306
+
 CMD ["mysqld"]
