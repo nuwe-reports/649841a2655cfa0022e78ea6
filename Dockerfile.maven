@@ -1,13 +1,10 @@
-FROM maven:3.6.3-openjdk-11 AS build
-WORKDIR /app
-COPY pom.xml /app
-COPY src/main/resources/application.properties /app
-COPY src/main/resources/application-integrationtest.properties /app
-COPY src /app/src
+FROM maven:3.5.2-jdk-8-alpine AS MAVEN_BUILD
+COPY pom.xml /build/
+COPY src /build/src/
+WORKDIR /build/
 RUN mvn package
 
-FROM openjdk:11-jre-slim
+FROM openjdk:8-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/accenture-techhub-0.0.1-SNAPSHOT.war /app
-EXPOSE 8080
-CMD ["java", "-jar", "accenture-techhub-0.0.1-SNAPSHOT.war"]
+COPY --from=MAVEN_BUILD /build/target/accenture-techhub-0.0.1-SNAPSHOT.war /app/
+ENTRYPOINT ["java", "-jar", "accenture-techhub-0.0.1-SNAPSHOT.war"]
